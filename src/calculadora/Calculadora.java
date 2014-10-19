@@ -23,6 +23,11 @@ import java.util.Scanner;
 10* 20+ 30
 30 * 20  +10
 1*2+3*4+5*6+7*8
+1+-2--3*-4
+-11+22-0+4*-1
+2+32/2/2/2
+----3
+64/-2/2/2/-2*-2*-2
  */
 
 public class Calculadora {
@@ -56,32 +61,7 @@ public class Calculadora {
 			default : return a;
 		}
 	}
-	/*
-	public String linea(String cuenta) {
-		String std = "";
-	//	Scanner sc = new Scanner(cuenta);
-		char[] cadena = cuenta.toCharArray();
-		int primero = 0;
-		int segundo = 0;
-		char operando = '?';
-		for(int i = 0; i < cadena.length; i++) {
-			if(cadena[i]>='0' && cadena[i]<='9') {
-				if(operando == '?') {
-					primero = primero*10 + Integer.parseInt(""+cadena[i]);
-				} else {
-					segundo = segundo*10 + Integer.parseInt(""+cadena[i]);
-				}
-			} else if (cadena[i] == ' ') {
-			} else {
-				operando = cadena[i];
-			}
-		}
-		std = std + operar(primero, operando, segundo);
-		
-		
-		return std;
-	}
-*/	
+
 	public String calcular(){
 
 		String std = "";
@@ -133,10 +113,10 @@ public class Calculadora {
 		boolean bien = true;
 		char[] array = std.toCharArray();
 		for(int i = 0; i < array.length-1; i++) {
-			if(esOperador(array[i]) && esOperador(array[i+1]))
+			if(esOperador(array[i]) && esOperador(array[i+1]) && (array[i]!='-' && array[i+1]!='-'))
 				bien = false;
 		}		
-		if(esOperador(array[0]) || esOperador(array[array.length-1]))
+		if((esOperador(array[0]) && array[0]!='-') || esOperador(array[array.length-1]))
 			bien = false;
 		return bien;
 	}
@@ -153,6 +133,8 @@ public class Calculadora {
 	 * @param args
 	 */
 	public void separador(String std) {
+		int negativo = 0;		//Cuando es true, el - trabaja como signo
+		char anterior = 'w';  //Usado para los signos
 		listaInt = new ArrayList<>();
 		listaChar = new ArrayList<>();
 		char[] cadena = std.toCharArray();
@@ -160,16 +142,27 @@ public class Calculadora {
 		for(int i = 0; i < cadena.length; i++) {
 			if(cadena[i]>='0' && cadena[i]<='9') {
 					num = num*10 + Integer.parseInt(""+cadena[i]);
+					anterior = '6'; //Por poner algun numero
 				
-			} else if (cadena[i] == ' ') {
-			} else {
-				listaInt.add(num);
+			} else if (cadena[i] == ' ') {}
+			//Para los signos negativos
+			//Lo comentado se puede quitar ya que nada más empezar, anterior = w y luego cambia.
+			else if(/*cadena[i]=='-' && i==0 || cadena[i]=='-' && */(anterior<'0' || anterior>'9')) { 
+				negativo++;
+				
+			}
+			else {
+				
+				listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
+				negativo = 0;
+				
 				num = 0;
 				
 				listaChar.add(cadena[i]);
+				anterior = cadena[i];
 			}
 		}
-		listaInt.add(num);
+		listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
 	}
 
 	/**
@@ -183,11 +176,12 @@ public class Calculadora {
 		aux = lista.indexOf('/');
 		if(aux!=-1 && primeraAparicion!=-1 && aux<primeraAparicion || aux!=-1 && primeraAparicion==-1)
 			primeraAparicion = aux;
-		if(primeraAparicion==-1)
+		if(primeraAparicion==-1) {
 			primeraAparicion = lista.indexOf('+');
 			aux = lista.indexOf('-');
 			if(aux!=-1 && primeraAparicion!=-1 && aux<primeraAparicion || aux!=-1 && primeraAparicion==-1)
 				primeraAparicion = aux;
+		}
 		return primeraAparicion;
 	}
 	
