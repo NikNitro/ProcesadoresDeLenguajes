@@ -1,4 +1,4 @@
-package calculadora;
+//package calculadora;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -31,11 +31,18 @@ import java.util.Scanner;
  */
 
 public class Calculadora {
-	private BufferedReader br;
-	private String nombreSalida = "out.txt";
+	private BufferedReader br = null;	//Para ficheros
+	private Scanner sc = null;			//Para System.in
+	private String nombreSalida = null;
 
-	private List<Integer> listaInt = new ArrayList<>();
-	private List<Character> listaChar = new ArrayList<>();
+	private List<Integer> listaInt;
+	private List<Character> listaChar;
+	
+/*	public Calculadora() {
+		sc = new Scanner(System.in);
+		imprime(this.calcular());
+		sc.close();
+	}*/
 	
 	public Calculadora(String txt) {
 		try {
@@ -43,13 +50,17 @@ public class Calculadora {
 			FileReader fr = new FileReader(f);
 			br = new BufferedReader(fr);
 			imprime(this.calcular());
-			
+			br.close();
 			
 		} catch (FileNotFoundException e) {e.printStackTrace();} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
+	}
+	public Calculadora(String in, String out) {
+		nombreSalida = out;
+		new Calculadora(in);
 	}
 	
 	private int operar(int a, char s, int b) {
@@ -63,24 +74,40 @@ public class Calculadora {
 	}
 
 	public String calcular(){
-
+		
 		String std = "";
 		String linea;
 		try {
-			linea = br.readLine();
+	//		if(br!=null)
+				linea = br.readLine();
+	//		else
+	//			linea = sc.next();
 			
 		
 			while(linea != null) {
-				if(bienFormada(linea)) {
+	//			if(bienFormada(linea)) {
 					separador(linea);
-					std = std + opera(listaChar, listaInt) + "\n";
-					linea = br.readLine();
+					if(listaInt.size()!=0) 
+						std = std + opera(listaChar, listaInt) + "\n";
+					else
+						std = std + "\n";
+	//				if(br!=null)
+						linea = br.readLine();
+						
+						
+						
+						
+	/*				else
+						linea = sc.next();
 					
 				} else {
 					std = std + "0 \n";
-					linea = br.readLine();
+					if(br!=null)
+						linea = br.readLine();
+					else
+						linea = sc.next();
 				}
-			}
+	*/		}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -99,7 +126,7 @@ public class Calculadora {
 				while(aux.hasNext())
 					pw.println(aux.next());
 				pw.close();
-				System.out.println("Imprito:\n"+std);
+			//	System.out.println("Imprito:\n"+std);
 			} catch (FileNotFoundException e) { e.printStackTrace(); }
 			}
 	}
@@ -135,12 +162,14 @@ public class Calculadora {
 	public void separador(String std) {
 		int negativo = 0;		//Cuando es true, el - trabaja como signo
 		char anterior = 'w';  //Usado para los signos
-		listaInt = new ArrayList<>();
-		listaChar = new ArrayList<>();
+		listaInt = new ArrayList<Integer>();
+		listaChar = new ArrayList<Character>();
 		char[] cadena = std.toCharArray();
+		boolean entra = false;				//Por si es una linea vacia no entra
 		int num = 0;
 		for(int i = 0; i < cadena.length; i++) {
 			if(cadena[i]>='0' && cadena[i]<='9') {
+					entra = true;
 					num = num*10 + Integer.parseInt(""+cadena[i]);
 					anterior = '6'; //Por poner algun numero
 				
@@ -148,6 +177,7 @@ public class Calculadora {
 			//Para los signos negativos
 			//Lo comentado se puede quitar ya que nada más empezar, anterior = w y luego cambia.
 			else if(/*cadena[i]=='-' && i==0 || cadena[i]=='-' && */(anterior<'0' || anterior>'9')) { 
+				entra = true;
 				negativo++;
 				
 			}
@@ -162,7 +192,8 @@ public class Calculadora {
 				anterior = cadena[i];
 			}
 		}
-		listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
+		if(entra)
+			listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
 	}
 
 	/**
@@ -198,7 +229,7 @@ public class Calculadora {
 		return valores.get(0);
 	}
 	public static void main(String[] args) {
-		Calculadora c = new Calculadora("in.txt");
+		Calculadora c = new Calculadora(args[0]);
 		//System.out.println(c.calcular());
 	}
 }
