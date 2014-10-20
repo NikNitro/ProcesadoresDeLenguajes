@@ -1,4 +1,4 @@
-//package calculadora;
+package calculadora;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,19 +15,60 @@ import java.util.Scanner;
 3*5
 12*40
 0
+
 21 + 12
   11 *22
  5 -  1
   123
+  
   10 + 20 * 30
 10* 20+ 30
 30 * 20  +10
 1*2+3*4+5*6+7*8
+
 1+-2--3*-4
 -11+22-0+4*-1
 2+32/2/2/2
 ----3
 64/-2/2/2/-2*-2*-2
+
+(1+-2)-(-3*-4)
+2 * ((-11+22-0)+(4*-1))
+2 + (((32/2)/2)/2)
+-(---3* (2 + 5))
+(64/-2/2/2/-2)-(2*-2*-2)
+((((((1+2)*3)+4)*((5+6)*7)+8)*9))
+ */
+
+/* Resultados
+4
+15
+480
+0
+
+33
+242
+4
+123
+
+610
+230
+610
+100
+
+-13
+7
+6
+3
+16
+
+-13
+14
+6
+21
+-4
+9081
+
  */
 
 public class Calculadora {
@@ -37,12 +78,7 @@ public class Calculadora {
 
 	private List<Integer> listaInt;
 	private List<Character> listaChar;
-	
-/*	public Calculadora() {
-		sc = new Scanner(System.in);
-		imprime(this.calcular());
-		sc.close();
-	}*/
+
 	
 	public Calculadora(String txt) {
 		try {
@@ -52,9 +88,8 @@ public class Calculadora {
 			imprime(this.calcular());
 			br.close();
 			
-		} catch (FileNotFoundException e) {e.printStackTrace();} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		} catch (FileNotFoundException e) {e.printStackTrace();
+		} catch (IOException e) { e.printStackTrace(); 
 		}
 		
 	}
@@ -63,7 +98,8 @@ public class Calculadora {
 		new Calculadora(in);
 	}
 	
-	private int operar(int a, char s, int b) {
+	
+	public int operar(int a, char s, int b) {
 		switch(s) {
 			case '+' : return a+b;
 			case '*' : return a*b;
@@ -73,47 +109,28 @@ public class Calculadora {
 		}
 	}
 
+	
 	public String calcular(){
 		
 		String std = "";
 		String linea;
 		try {
-	//		if(br!=null)
 				linea = br.readLine();
-	//		else
-	//			linea = sc.next();
 			
 		
 			while(linea != null) {
-	//			if(bienFormada(linea)) {
-					separador(linea);
-					if(listaInt.size()!=0) 
-						std = std + opera(listaChar, listaInt) + "\n";
-					else
-						std = std + "\n";
-	//				if(br!=null)
-						linea = br.readLine();
-						
-						
-						
-						
-	/*				else
-						linea = sc.next();
-					
-				} else {
-					std = std + "0 \n";
-					if(br!=null)
-						linea = br.readLine();
-					else
-						linea = sc.next();
-				}
-	*/		}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+				separador(linea);
+				if(listaInt.size()!=0) 
+					std = std + opera(listaChar, listaInt) + "\n";
+				else
+					std = std + "\n";
+				linea = br.readLine();
+			}
+		} catch (IOException e) { e.printStackTrace(); }
+		
 		return std;
 	}
+	
 	
 	public void imprime(String std) {
 		if(nombreSalida == null)
@@ -126,6 +143,7 @@ public class Calculadora {
 				while(aux.hasNext())
 					pw.println(aux.next());
 				pw.close();
+				aux.close();
 			//	System.out.println("Imprito:\n"+std);
 			} catch (FileNotFoundException e) { e.printStackTrace(); }
 			}
@@ -161,7 +179,8 @@ public class Calculadora {
 	 */
 	public void separador(String std) {
 		int negativo = 0;		//Cuando es true, el - trabaja como signo
-		char anterior = 'w';  //Usado para los signos
+		boolean anteriorNoParentesis = true;					//Cuando es false, después habrá un signo, pero no imprimirá nada.
+		char anterior = 'p';  //Usado para los signos. Estado p = inicial, 6 si el anterior fue un num y w cuando fue operador
 		listaInt = new ArrayList<Integer>();
 		listaChar = new ArrayList<Character>();
 		char[] cadena = std.toCharArray();
@@ -176,17 +195,43 @@ public class Calculadora {
 			} else if (cadena[i] == ' ') {}
 			//Para los signos negativos
 			//Lo comentado se puede quitar ya que nada más empezar, anterior = w y luego cambia.
-			else if(/*cadena[i]=='-' && i==0 || cadena[i]=='-' && */(anterior<'0' || anterior>'9')) { 
+			else if(cadena[i]== '-' && (anterior<'0' || anterior>'9')) { 
 				entra = true;
+				anterior = '-';
 				negativo++;
 				
-			}
-			else {
+			} else if(cadena[i]=='(') {	//Creamos una subString con el interior del paréntesis
+				int parentesis = 1;
+				int parentesisContrario = i+1;
+				while(parentesis>0) {
+					if(cadena[parentesisContrario]=='(')
+						parentesis++;
+					else if (cadena[parentesisContrario]==')') 
+						parentesis--;
+					parentesisContrario++;
+				}
+				parentesisContrario--;	//Porque sino me contaría también el ')'
+				String subCadena = "";
+				if(listaInt.isEmpty() && anterior=='-')		//Por si la cadena empieza por "-(" que guarde ese - dentro.
+					subCadena = "-";
 				
-				listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
-				negativo = 0;
+
+				anterior = '6';
+				for (int index = i+1; index < parentesisContrario; index++) {
+					subCadena=subCadena + cadena[index];
+				}
+				listaInt.add(subParentesis(subCadena));
+				anteriorNoParentesis = false;
+				i = parentesisContrario;
 				
-				num = 0;
+			} else {
+				if(anteriorNoParentesis) {
+					listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
+					negativo = 0;
+					num = 0;
+					anteriorNoParentesis = true;
+				}
+				
 				
 				listaChar.add(cadena[i]);
 				anterior = cadena[i];
@@ -194,6 +239,27 @@ public class Calculadora {
 		}
 		if(entra)
 			listaInt.add((int)(num*java.lang.Math.pow(-1, negativo)));
+	}
+	
+	//Actua igual que la recursividad en Mips
+	public int subParentesis(String std) {
+		int res = 0;
+		
+		//Guardamos los valores antiguos, pues los pisaríamos. PUSH
+		List<Integer> auxI = listaInt;
+		List<Character> auxC = listaChar;
+		listaInt = new ArrayList<Integer>();
+		listaChar = new ArrayList<Character>();
+		
+		separador(std);
+		res= opera(listaChar, listaInt);
+	//	System.out.println("Resultado de la operación interna "+res);
+		
+		// Recuperamos los valores de las listas. POP
+		listaInt = auxI;
+		listaChar = auxC;
+		return res;
+		
 	}
 
 	/**
@@ -228,8 +294,12 @@ public class Calculadora {
 		
 		return valores.get(0);
 	}
+
+	
+	
 	public static void main(String[] args) {
 		Calculadora c = new Calculadora(args[0]);
 		//System.out.println(c.calcular());
+		//System.out.println(Calculadora.operaParentesis("(5+(4*2))-6"));
 	}
 }
